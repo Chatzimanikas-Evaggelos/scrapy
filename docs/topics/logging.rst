@@ -163,6 +163,9 @@ These settings can be used to configure the logging:
 
 * :setting:`LOG_FILE`
 * :setting:`LOG_FILE_APPEND`
+* :setting:`LOG_FILE_ROTATE`
+* :setting:`LOG_FILE_ROTATE_RETENTION`
+* :setting:`LOG_FILE_ROTATE_COMPRESSION`
 * :setting:`LOG_ENABLED`
 * :setting:`LOG_ENCODING`
 * :setting:`LOG_LEVEL`
@@ -177,8 +180,14 @@ redirected to a file named :setting:`LOG_FILE` with encoding
 :setting:`LOG_ENCODING`. If unset and :setting:`LOG_ENABLED` is ``True``, log
 messages will be displayed on the standard error. If :setting:`LOG_FILE` is set
 and :setting:`LOG_FILE_APPEND` is ``False``, the file will be overwritten
-(discarding the output from previous runs, if any). Lastly, if
+(discarding the output from previous runs, if any).
+Note that :setting:`LOG_FILE_APPEND` has no effect when
+:setting:`LOG_FILE_ROTATE` is set. Lastly, if
 :setting:`LOG_ENABLED` is ``False``, there won't be any visible log output.
+
+If :setting:`LOG_FILE_ROTATE` is set, the log file will be rotated
+automatically using :pypi:`loguru`. See :ref:`topics-logging-rotation` for
+details.
 
 :setting:`LOG_LEVEL` determines the minimum level of severity to display, those
 messages with lower severity will be filtered out. It ranges through the
@@ -193,6 +202,90 @@ respectively.
 If :setting:`LOG_SHORT_NAMES` is set, then the logs will not display the Scrapy
 component that prints the log. It is unset by default, hence logs contain the
 Scrapy component responsible for that log output.
+
+.. _topics-logging-rotation:
+
+Rotating log files
+------------------
+
+Scrapy supports automatic log file rotation via the :setting:`LOG_FILE_ROTATE`
+setting, which is powered by :pypi:`loguru`. When set, Scrapy will
+automatically rotate the log file according to the specified trigger and manage
+old log files according to :setting:`LOG_FILE_ROTATE_RETENTION` and
+:setting:`LOG_FILE_ROTATE_COMPRESSION`.
+
+:setting:`LOG_FILE_ROTATE` accepts the same rotation values that loguru
+supports:
+
+    Default: ``None``
+
+    When set, enables automatic log file rotation powered by :pypi:`loguru`.
+    Requires ``loguru`` to be installed (``pip install loguru``).
+
+    Accepts any value supported by loguru's ``rotation`` parameter. The accepted
+    types are:
+
+    - **A size string**: rotate when the file reaches the given size.
+      The unit must be one of ``KB``, ``MB``, or ``GB``, e.g. ``"100 MB"`` or
+      ``"0.5 GB"``.
+
+    - **A time-of-day string**: rotate once per day at the given time.
+      Use ``"HH:MM"`` format (24-hour), e.g. ``"06:00"`` or ``"23:30"``.
+      The special value ``"midnight"`` is also accepted and is equivalent to
+      ``"00:00"``.
+
+    - **A weekday string**: rotate once per week on the given day, at midnight.
+      Accepted values are ``"monday"``, ``"tuesday"``, ``"wednesday"``,
+      ``"thursday"``, ``"friday"``, ``"saturday"``, and ``"sunday"``.
+
+    - **An interval string**: rotate after the given time interval has elapsed.
+      Examples: ``"1 hour"``, ``"30 minutes"``, ``"1 week"``, ``"1 month"``.
+
+    - **A** :class:`datetime.time` **object**: rotate daily at the specified
+      time.
+
+    - **A** :class:`datetime.timedelta` **object**: rotate after each interval
+      of the given duration.
+
+    - **A callable**: a function that receives the current log message and the
+      current log file object, and returns ``True`` when the file should be
+      rotated. This enables fully custom rotation logic.
+
+    For the authoritative reference on all accepted formats and edge cases, see
+    the `loguru documentation
+    <https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.add>`_.
+
+See :ref:`topics-logging-rotation` for Scrapy-specific usage examples.
+For example, to rotate the log file every day at midnight and keep the last
+7 compressed backups, add to your ``settings.py``::
+
+    LOG_FILE = "scrapy.log"
+    LOG_FILE_ROTATE = "midnight"
+    LOG_FILE_ROTATE_RETENTION = 7
+    LOG_FILE_ROTATE_COMPRESSION = "gz"
+
+:setting:`LOG_FILE_ROTATE_RETENTION` controls how many rotated log files are
+kept before old ones are deleted. It accepts an integer (number of files) or a
+time duration string (e.g. ``"1 week"``). Defaults to ``None`` (keep all).
+
+:setting:`LOG_FILE_ROTATE_COMPRESSION` controls the compression format applied
+to rotated files. Accepted values are ``"gz"``, ``"bz2"``, and ``"zip"``.
+Defaults to ``None`` (no compression).
+
+.. note::
+    :setting:`LOG_FILE_ROTATE` requires :pypi:`loguru` to be installed::
+
+        pip install loguru
+
+    When :setting:`LOG_FILE_ROTATE` is set, :setting:`LOG_FILE_APPEND` has no
+    effect, as loguru manages the file handle directly.
+
+.. note::
+    When using log rotation in a multi-crawler setup (e.g. with
+    :class:`~scrapy.crawler.CrawlerProcess`), all crawlers writing to the same
+    file share a single loguru sink backed by a thread-safe queue. Each
+    distinct log file path gets its own sink, so two crawlers writing to
+    different files are fully independent.
 
 Command-line options
 --------------------
