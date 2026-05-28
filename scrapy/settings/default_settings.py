@@ -120,6 +120,9 @@ __all__ = [
     "LOG_ENCODING",
     "LOG_FILE",
     "LOG_FILE_APPEND",
+    "LOG_FILE_ROTATE",
+    "LOG_FILE_ROTATE_COMPRESSION",
+    "LOG_FILE_ROTATE_RETENTION",
     "LOG_FORMAT",
     "LOG_FORMATTER",
     "LOG_LEVEL",
@@ -397,6 +400,9 @@ LOG_DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 LOG_ENCODING = "utf-8"
 LOG_FILE = None
 LOG_FILE_APPEND = True
+LOG_FILE_ROTATE = None
+LOG_FILE_ROTATE_COMPRESSION = None
+LOG_FILE_ROTATE_RETENTION = None
 LOG_FORMAT = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
 LOG_FORMATTER = "scrapy.logformatter.LogFormatter"
 LOG_LEVEL = "DEBUG"
