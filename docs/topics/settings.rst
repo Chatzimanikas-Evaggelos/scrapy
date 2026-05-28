@@ -1439,6 +1439,80 @@ Default: ``True``
 If ``False``, the log file specified with :setting:`LOG_FILE` will be
 overwritten (discarding the output from previous runs, if any).
 
+Has no effect when :setting:`LOG_FILE_ROTATE` is set, as loguru manages
+the file handle directly in that case.
+
+.. setting:: LOG_FILE_ROTATE
+
+LOG_FILE_ROTATE
+---------------
+
+Default: ``None``
+
+When set, enables automatic log file rotation powered by :pypi:`loguru`.
+Requires ``loguru`` to be installed (``pip install loguru``).
+
+Accepts any value supported by loguru's ``rotation`` parameter. The accepted
+types are:
+
+- **A size string**: rotate when the file reaches the given size.
+  The unit must be one of ``KB``, ``MB``, or ``GB``, e.g. ``"100 MB"`` or
+  ``"0.5 GB"``.
+
+- **A time-of-day string**: rotate once per day at the given time.
+  Use ``"HH:MM"`` format (24-hour), e.g. ``"06:00"`` or ``"23:30"``.
+  The special value ``"midnight"`` is also accepted and is equivalent to
+  ``"00:00"``.
+
+- **A weekday string**: rotate once per week on the given day, at midnight.
+  Accepted values are ``"monday"``, ``"tuesday"``, ``"wednesday"``,
+  ``"thursday"``, ``"friday"``, ``"saturday"``, and ``"sunday"``.
+
+- **An interval string**: rotate after the given time interval has elapsed.
+  Examples: ``"1 hour"``, ``"30 minutes"``, ``"1 week"``, ``"1 month"``.
+
+- **A** :class:`datetime.time` **object**: rotate daily at the specified
+  time.
+
+- **A** :class:`datetime.timedelta` **object**: rotate after each interval
+  of the given duration.
+
+- **A callable**: a function that receives the current log message and the
+  current log file object, and returns ``True`` when the file should be
+  rotated. This enables fully custom rotation logic.
+
+For the authoritative reference on all accepted formats and edge cases, see
+the `loguru documentation
+<https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.add>`_.
+
+See :ref:`topics-logging-rotation` for Scrapy-specific usage examples.
+
+.. setting:: LOG_FILE_ROTATE_COMPRESSION
+
+LOG_FILE_ROTATE_COMPRESSION
+---------------------------
+
+Default: ``None``
+
+The compression format to apply to rotated log files when
+:setting:`LOG_FILE_ROTATE` is set. Accepted values are ``"gz"``, ``"bz2"``,
+and ``"zip"``. When ``None``, rotated files are not compressed.
+
+Has no effect when :setting:`LOG_FILE_ROTATE` is not set.
+
+.. setting:: LOG_FILE_ROTATE_RETENTION
+
+LOG_FILE_ROTATE_RETENTION
+-------------------------
+
+Default: ``None``
+
+Controls how many rotated log files are kept when :setting:`LOG_FILE_ROTATE`
+is set. Accepts an integer (number of files to keep) or a duration string
+(e.g. ``"1 week"``). When ``None``, all rotated files are kept indefinitely.
+
+Has no effect when :setting:`LOG_FILE_ROTATE` is not set.
+
 .. setting:: LOG_FORMAT
 
 LOG_FORMAT
